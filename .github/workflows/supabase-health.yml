@@ -17,34 +17,52 @@ jobs:
             -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
             -H "Content-Type: application/json")
-          
+
           http_status=$(echo "$response" | grep "HTTP_STATUS" | cut -d':' -f2)
           body=$(echo "$response" | sed '$d')
-          
+
           echo "RPC Response: $body"
           echo "Status: $http_status"
-          
+
           if [ "$http_status" -ge 400 ]; then
             echo "::error::RPC health check failed with status $http_status"
             exit 1
           fi
 
-      - name: Ping Table
+      - name: Ping Table with Random Message
         if: always()
         run: |
+          messages=(
+            "still alive 🫡"
+            "not dead yet 💀"
+            "just checking in, boss"
+            "beep boop still breathing"
+            "ping received, project awake"
+            "coffee break interrupted by cron job ☕"
+            "server says hi 👋"
+            "another day, another heartbeat"
+            "keeping the lights on 💡"
+            "database says: I'm fine, thanks for asking"
+          )
+          random_message="${messages[$RANDOM % ${#messages[@]}]}"
+          echo "Sending message: $random_message"
+
           response=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
-            -X GET \
-            "${{ secrets.SUPABASE_URL }}/rest/v1/YOUR_TABLE_NAME?select=id&limit=1" \
+            -X POST \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/checkerr" \
             -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
-          
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=representation" \
+            -d "{\"message\": \"$random_message\"}")
+
           http_status=$(echo "$response" | grep "HTTP_STATUS" | cut -d':' -f2)
           body=$(echo "$response" | sed '$d')
-          
-          echo "Table Ping Response: $body"
+
+          echo "Insert Response: $body"
           echo "Status: $http_status"
-          
+
           if [ "$http_status" -ge 400 ]; then
-            echo "::error::Table ping failed with status $http_status"
+            echo "::error::Insert to checkerr failed with status $http_status"
             exit 1
           fi
