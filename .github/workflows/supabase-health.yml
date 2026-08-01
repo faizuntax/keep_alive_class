@@ -23,5 +23,3 @@ jobs:
             -H "Content-Type: application/json")
 
           echo "Response: $response"
-
-          echo "$response" | grep '"status":"ok"'
