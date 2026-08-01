@@ -1,0 +1,27 @@
+name: Supabase Health Check
+
+on:
+  schedule:
+    # Jalan setiap 6 jam
+    - cron: '0 */6 * * *'
+
+  # Bisa dijalankan manual dari GitHub
+  workflow_dispatch:
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check Supabase
+        run: |
+          response=$(curl -s \
+            -X POST \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/health_check" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Content-Type: application/json")
+
+          echo "Response: $response"
+
+          echo "$response" | grep '"status":"ok"'
